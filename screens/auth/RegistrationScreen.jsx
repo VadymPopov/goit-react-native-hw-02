@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
-import CrossIcon from '../assets/images/svg/CrossIcon';
+import React, {useState, useRef} from 'react';
+import CrossIcon from '../../assets/images/svg/CrossIcon';
+import { useNavigation } from '@react-navigation/native';
 
 import { 
   StyleSheet,
@@ -21,9 +22,14 @@ import {
   };
 
 export default function RegistrationScreen() {
+  const navigation = useNavigation();
+
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isAvatarShown, setIsAvatarShown] = useState(false);
   const [isPasswordShown, setIsPasswordShown] = useState(true);
+
+  const emailRef = useRef();
+  const passwordRef = useRef();
 
   const avatarToggle = () => {
     setIsAvatarShown((value) => !value);
@@ -50,16 +56,16 @@ export default function RegistrationScreen() {
 
     return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
-       <ImageBackground style={styles.image} source={require('../assets/images/mountains-bg.png')}>
+       <ImageBackground style={styles.image} source={require('../../assets/images/mountains-bg.png')}>
           <KeyboardAvoidingView 
           behavior={Platform.OS == "ios" ? "padding" : "height"}
           style={styles.container}
         >
-            <View style={{...styles.form, marginBottom: isShowKeyboard ? -94 : 78}}>
+            <View style={{...styles.form, marginBottom: isShowKeyboard ? -90 : 78}}>
               <View style={styles.avatar}>
                 <View style={styles.avatarBg}>
                 {isAvatarShown && (
-                <Image style={styles.avatarImg} source={require('../assets/images/avatar.jpg')}/>)}
+                <Image style={styles.avatarImg} source={require('../../assets/images/avatar.jpg')}/>)}
                 <TouchableOpacity style={styles.addBtn} onPress={()=>avatarToggle()}>
                   <CrossIcon  isShown={isAvatarShown} />
                 </TouchableOpacity>
@@ -74,6 +80,11 @@ export default function RegistrationScreen() {
                   style={styles.input}
                   textAlign={'left'}
                   onFocus={()=>{setIsShowKeyboard(true)}}
+                  returnKeyType="next"
+                  onSubmitEditing={() => {
+                    emailRef.current.focus();
+                  }}
+                  blurOnSubmit={false}
                 />
               <TextInput
                   value={auth.email}
@@ -83,6 +94,12 @@ export default function RegistrationScreen() {
                   style={styles.input}
                   textAlign={'left'}
                   onFocus={()=>{setIsShowKeyboard(true)}}
+                  ref={emailRef}
+                  returnKeyType="next"
+                  onSubmitEditing={() => {
+                    passwordRef.current.focus();
+                  }}
+                  blurOnSubmit={false}
 
                 />
                <View style={styles.input}>
@@ -93,6 +110,8 @@ export default function RegistrationScreen() {
                    secureTextEntry={isPasswordShown}
                    textAlign={'left'}
                    onFocus={()=>{setIsShowKeyboard(true)}}
+                   ref={passwordRef}
+                   onSubmitEditing={() => {setIsShowKeyboard(false)}}
                  />
                  <TouchableOpacity activeOpacity={0.5} style={styles.showBtn} onPress={passwordToggle}>
                     <Text style={styles.showTitle}>{isPasswordShown ? 'Show' : 'Hide'}</Text>
@@ -102,7 +121,7 @@ export default function RegistrationScreen() {
                   <TouchableOpacity activeOpacity={0.8} style={styles.btn} onPress={onHandleSubmit}>
                     <Text style={styles.btnTitle}>Register</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.8} style={{marginTop: 16}} onPress={()=>{}}>
+                  <TouchableOpacity activeOpacity={0.8} style={{marginTop: 16}} onPress={()=>navigation.navigate('Login',{auth})}>
                     <Text style={styles.link}>Already have an account? Sign in</Text>
                   </TouchableOpacity>
                 </View>
@@ -130,6 +149,7 @@ export default function RegistrationScreen() {
     title: {
       fontSize: 30,
       // fontWeight: 500,
+      fontWeight: 'Medium',
       lineHeight: 35,
       textAlign: "center",
       letterSpacing: 0.01,
@@ -159,6 +179,7 @@ export default function RegistrationScreen() {
       color: '#1B4371',
       fontSize: 16,
       // fontWeight: 400,
+      fontWeight: 'Regular',
       lineHeight: 19
     },
     btn: {

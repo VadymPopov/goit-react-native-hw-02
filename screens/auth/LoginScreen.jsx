@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 
 import { 
   StyleSheet,
@@ -18,9 +18,11 @@ import {
     password: '',
   };
 
-export default function RegistrationScreen() {
+export default function LoginScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isPasswordShown, setIsPasswordShown] = useState(true);
+
+  const emailRef = useRef();
 
   const passwordToggle = () => {
     setIsPasswordShown((value) => !value);
@@ -42,7 +44,7 @@ export default function RegistrationScreen() {
 
     return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
-       <ImageBackground style={styles.image} source={require('../assets/images/mountains-bg.png')}>
+       <ImageBackground style={styles.image} source={require('../../assets/images/mountains-bg.png')}>
           <KeyboardAvoidingView 
           behavior={Platform.OS == "ios" ? "padding" : "height"}
           style={styles.container}
@@ -57,16 +59,23 @@ export default function RegistrationScreen() {
                   style={styles.input}
                   textAlign={'left'}
                   onFocus={()=>{setIsShowKeyboard(true)}}
+                  returnKeyType="next"
+                  onSubmitEditing={() => {
+                    emailRef.current.focus();
+                  }}
+                  blurOnSubmit={false}
 
                 />
                <View style={styles.input}>
                 <TextInput
-                   value={auth.password}
-                   onChangeText={passwordHandler}
-                   placeholder="Password"
-                   secureTextEntry={isPasswordShown}
-                   textAlign={'left'}
-                   onFocus={()=>{setIsShowKeyboard(true)}}
+                  value={auth.password}
+                  onChangeText={passwordHandler}
+                  placeholder="Password"
+                  secureTextEntry={isPasswordShown}
+                  textAlign={'left'}
+                  onFocus={()=>{setIsShowKeyboard(true)}}
+                  ref={emailRef}
+                  onSubmitEditing={() => {setIsShowKeyboard(false)}}
                  />
                  <TouchableOpacity activeOpacity={0.5} style={styles.showBtn} onPress={passwordToggle}>
                     <Text style={styles.showTitle}>{isPasswordShown ? 'Show' : 'Hide'}</Text>
@@ -76,7 +85,7 @@ export default function RegistrationScreen() {
                   <TouchableOpacity activeOpacity={0.8} style={styles.btn} onPress={onHandleSubmit}>
                     <Text style={styles.btnTitle}>Log In</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.8} style={{marginTop: 16}} onPress={()=>{}}>
+                  <TouchableOpacity activeOpacity={0.8} style={{marginTop: 16}} onPress={()=>navigation.navigate('Registration')}>
                     <Text style={styles.link}>Don't have an account? Register</Text>
                   </TouchableOpacity>
                 </View>
@@ -102,7 +111,7 @@ export default function RegistrationScreen() {
    },
     title: {
       fontSize: 30,
-      fontWeight: 500,
+      fontWeight: 'Medium',
       lineHeight: 35,
       textAlign: "center",
       letterSpacing: 0.01,
@@ -131,7 +140,7 @@ export default function RegistrationScreen() {
     showTitle: {
       color: '#1B4371',
       fontSize: 16,
-      fontWeight: 400,
+      fontWeight: 'Regular',
       lineHeight: 19
     },
     btn: {
@@ -152,36 +161,5 @@ export default function RegistrationScreen() {
       lineHeight: 19,
       textAlign: "center",
       color: "#1B4371",
-    },
-    avatar:{
-      position: "absolute",
-      left: 0,
-      right: 0,
-      transform: [{ translateY: -150 }],
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    avatarBg: {
-      position: "relative",
-      minWidth: 120,
-      minHeight: 120,
-      backgroundColor: "#F6F6F6",
-      borderRadius: 16,
-    },
-    avatarImg: {
-      borderRadius: 16,
-    },
-    addBtn: {
-    position: "absolute",
-    bottom: 14,
-    right: -13,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 25,
-    height: 25,
-    backgroundColor: "#fff",
-    borderRadius: 13,
     },
   });

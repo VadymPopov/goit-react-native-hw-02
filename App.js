@@ -1,7 +1,8 @@
-import { StyleSheet, View } from 'react-native';
-import RegistrationScreen from './Screens/RegistrationScreen';
-// import LoginScreen from './Screens/LoginScreen';
 import { useFonts } from "expo-font";
+import { NavigationContainer } from '@react-navigation/native';
+import useRoute from "./router";
+import 'react-native-gesture-handler';
+
 
 export default function App() {
   const [loaded] = useFonts({
@@ -14,20 +15,11 @@ export default function App() {
     return null;
   }
 
+  const routing = useRoute(true);
+
   return (
-    <View style={styles.container}>
-      {/* <LoginScreen/> */}
-      <RegistrationScreen/>
-    </View>
+    <NavigationContainer>
+     {routing}
+    </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    fontSize: 16,
-    color: "#212121",
-    fontFamily: "Roboto-Medium",
-  },
-});
