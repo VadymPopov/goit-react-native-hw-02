@@ -31,7 +31,7 @@ export default function ProfileScreen({navigation}){
                         </View>
                         <Text style={styles.mainTitle}>Name</Text>
 
-                        <View >
+                        <View>
                             <View style={styles.backgroundContainer}></View>
                             <Text style={styles.title}>Name</Text>
                             <View style={styles.iconContainer}>
@@ -48,9 +48,6 @@ export default function ProfileScreen({navigation}){
                                     <Text style={styles.location}>Ukraine</Text>
                                 </View>
                             </View>
-                         
-                          
-    
                         </View>
                         
                         
@@ -77,7 +74,6 @@ export default function ProfileScreen({navigation}){
             alignItems:'center',
             justifyContent:'center',
             marginTop:32
-    
         },
         container: {
           backgroundColor: "#fff",

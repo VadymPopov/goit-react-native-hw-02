@@ -1,38 +1,67 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-export default function PostsScreen(){
+import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
+
+export default function PostsScreen({route}){
+    const [posts, setPosts]=useState([]);
+    const navigation= useNavigation();
+
+    useEffect(()=>{
+        if(route.params){
+        setPosts((prevState)=>[...prevState, route.params])}
+    }, [route.params]);
+
     return(
-        <View  style={styles.container}>
-            
+        <View style={styles.container}>
             <View style={styles.userContainer}>
-                <Image style={styles.image} source={require('../../assets/images/avatar.jpg')} />
+                <Image style={styles.avatar} source={require('../../assets/images/avatar.jpg')} />
                 <View style={styles.text}>
                     <Text style={styles.name}>Name</Text>
                     <Text style={styles.email}>email</Text>
                 </View>
             </View>
-            
+
+            <FlatList style={{paddingLeft:16,
+                paddingRight: 16,
+            }} data={posts} keyExtractor={(item, indx) => indx.toString()} renderItem={({ item }) => (
+                <View>
+                    <View style={styles.imgContainer}>
+                        <Image style={styles.image} source={{uri: item.photo}} />
+                    </View>
+                    <Text style={styles.title}>{item.description.title}</Text>
+                    <View style={styles.iconContainer}>
+                        <TouchableOpacity onPress={()=>navigation.navigate('Comments')} style={styles.commentContainer}>
+                            <FontAwesome name="comment" size={24} color="#FF6C00" />
+                            <Text style={styles.numbers}>0</Text>
+                        </TouchableOpacity>
+                        <View style={styles.locationContainer}>
+                            <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen')}}>
+                                <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
+                            </TouchableOpacity>
+                            <Text style={styles.location}>{item.description.location}</Text>
+                        </View>
+                    </View>
+                </View>)}
+            />
         </View>
     )
 
 };
 
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'flex-start',
-        paddingLeft:16,
-        paddingRight:16,
         paddingTop:32,
         backgroundColor: '#fff'
     },
     userContainer:{
-        flex:1,
         flexDirection: 'row',
-    
-        
+        paddingLeft:16,
+        marginBottom: 32
     },
     text:{
         marginLeft:8,
@@ -44,14 +73,53 @@ const styles = StyleSheet.create({
     email:{
         color:'rgba(33, 33, 33, 0.8)',
         fontSize:11,
-        fontWeight:'regular',
-        
-        
+        fontWeight:'regular',   
     },
-    image:{
+    avatar:{
         width:60,
         height:60,
         borderRadius: 10,
-
-    }
+    },
+    imgContainer: {
+        height: 240,
+        marginBottom: 8
+    },
+    image:{
+        height:240,
+        borderRadius: 8,
+    },
+    title:{
+        fontSize:16,
+        lineHeight:19,
+        fontWeight:'500',
+        marginBottom:11
+    },
+    numbers:{
+        fontSize:16,
+        lineHeight:19,
+        marginLeft: 6,
+    },
+    iconContainer:{
+        display:'flex',
+        flexDirection:'row',
+        alignItems:'center',
+        justifyContent:'space-between',
+        marginBottom: 32
+    },
+    commentContainer: {
+        display:'flex',
+        flexDirection:'row',
+        alignItems:'center',
+    },
+    locationContainer:{
+        display:'flex',
+        flexDirection:'row',
+        alignItems:'center',
+        marginLeft:141,
+    },
+    location:{
+        fontSize:16,
+        lineHeight:19,
+        textDecorationLine:'underline'
+    },
 });
