@@ -5,22 +5,45 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 
+import { db } from '../../firebase/config';
+import { collection, onSnapshot } from 'firebase/firestore'; 
+
+import { useSelector } from "react-redux";
+
 export default function PostsScreen({route}){
     const [posts, setPosts]=useState([]);
     const navigation= useNavigation();
 
-    useEffect(()=>{
-        if(route.params){
-        setPosts((prevState)=>[...prevState, route.params])}
-    }, [route.params]);
+    const { login, userEmail, userAvatar } = useSelector((state) => state.auth);
+
+    // useEffect(()=>{
+    //     if(route.params){
+    //     setPosts((prevState)=>[...prevState, route.params])}
+    // }, [route.params]);
+
+    const getDataFromFirestore = async () => {
+        const dbRef = await collection(db, "posts");
+        onSnapshot(dbRef, (data) =>
+          setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+      };
+      
+  useEffect(()=>{
+    (async () => {
+        await getDataFromFirestore();
+      })();
+},[]);
+
+console.log(posts)
+
 
     return(
         <View style={styles.container}>
             <View style={styles.userContainer}>
-                <Image style={styles.avatar} source={require('../../assets/images/avatar.jpg')} />
+                <Image style={styles.avatar} source={{ uri: userAvatar }} />
                 <View style={styles.text}>
-                    <Text style={styles.name}>Name</Text>
-                    <Text style={styles.email}>email</Text>
+                    <Text style={styles.name}>{login}</Text>
+                    <Text style={styles.email}>{userEmail}</Text>
                 </View>
             </View>
 
@@ -31,17 +54,21 @@ export default function PostsScreen({route}){
                     <View style={styles.imgContainer}>
                         <Image style={styles.image} source={{uri: item.photo}} />
                     </View>
-                    <Text style={styles.title}>{item.description.title}</Text>
+                    <Text style={styles.title}>{item.title}</Text>
                     <View style={styles.iconContainer}>
-                        <TouchableOpacity onPress={()=>navigation.navigate('Comments')} style={styles.commentContainer}>
-                            <FontAwesome name="comment" size={24} color="#FF6C00" />
-                            <Text style={styles.numbers}>0</Text>
+                        <TouchableOpacity onPress={()=>navigation.navigate('Comments', {postId: item.id, photo: item.photo})} style={styles.commentContainer}>
+                            <FontAwesome name="comment" size={24} color={
+                        !item.comments
+                          ? "#BDBDBD"
+                          : "#FF6C00"
+                      } />
+                            {/* <Text style={styles.numbers}>0</Text> */}
                         </TouchableOpacity>
                         <View style={styles.locationContainer}>
-                            <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen')}}>
+                            <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen', {location:item.location, title:item.title})}}>
                                 <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
                             </TouchableOpacity>
-                            <Text style={styles.location}>{item.description.location}</Text>
+                            <Text style={styles.location}>{item.locationTitle}</Text>
                         </View>
                     </View>
                 </View>)}

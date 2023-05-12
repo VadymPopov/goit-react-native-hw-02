@@ -18,20 +18,28 @@ import {
 import { useDispatch } from 'react-redux';
 import {authSignUpUser } from '../../redux/auth/authOperations';
 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../../firebase/config";
+import * as ImagePicker from "expo-image-picker";
+
   const initialState = {
     login: '',
     email:'',
     password: '',
+    avatar: null,
   };
 
 export default function RegistrationScreen() {
   const navigation = useNavigation();
-
   const dispatch = useDispatch();
 
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
-  const [isAvatarShown, setIsAvatarShown] = useState(false);
   const [isPasswordShown, setIsPasswordShown] = useState(true);
+  const [avatar, setAvatar] = useState(null);
+  const [auth, setAuth] = useState(initialState);
+   const [isLoginFocused, setIsLoginFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const emailRef = useRef();
   const passwordRef = useRef();
@@ -44,20 +52,62 @@ export default function RegistrationScreen() {
     setIsPasswordShown((value) => !value);
   };
 
-  const [auth, setAuth] = useState(initialState);
+
   const loginHandler = (value)=>setAuth((prevState)=>({...prevState, login: value}));
   const passwordHandler = (value)=>setAuth((prevState)=>({...prevState, password: value}));
   const emailHandler = (value)=>setAuth((prevState)=>({...prevState, email: value}));
+
+
+  const avatarSelect = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const uploadAvatarToServer = async (photo) => {
+    const response = await fetch(photo);
+
+    const file = await response.blob();
+
+    const uniquePostId = Date.now().toString();
+
+    const storageRef = await ref(storage, `avatar/${uniquePostId}`);
+
+    const uploadPhoto = await uploadBytes(storageRef, file);
+
+    const takePhoto = await getDownloadURL(uploadPhoto.ref);
+
+    return takePhoto;
+  };
 
   const keyboardHide = ()=>{
     setIsShowKeyboard(false);
     Keyboard.dismiss();
   };
   
-  const onHandleSubmit = ()=>{
-    console.log(auth)
-    dispatch(authSignUpUser(auth));
-    setAuth(initialState)
+  const onHandleSubmit = async ()=>{
+    try {
+      const refAvatar = await uploadAvatarToServer(avatar);
+
+      const newAuth = {
+        avatar: refAvatar,
+        login: auth.login,
+        email: auth.email,
+        password: auth.password,
+      };
+
+      dispatch(authSignUpUser(newAuth));
+      setAuth(initialState);
+    } catch (error) {
+      console.log(error);
+    }
 
   };
 
@@ -71,10 +121,10 @@ export default function RegistrationScreen() {
             <View style={{...styles.form, marginBottom: isShowKeyboard ? -90 : 78}}>
               <View style={styles.avatar}>
                 <View style={styles.avatarBg}>
-                {isAvatarShown && (
-                <Image style={styles.avatarImg} source={require('../../assets/images/avatar.jpg')}/>)}
-                <TouchableOpacity style={styles.addBtn} onPress={()=>avatarToggle()}>
-                  <CrossIcon  isShown={isAvatarShown} />
+                {avatar && (
+                <Image style={styles.avatarImg} source={{ uri: avatar }}/>)}
+                <TouchableOpacity style={styles.addBtn} onPress={()=>avatarSelect()}>
+                  {!avatar ? <CrossIcon  isShown={false} /> : <CrossIcon  isShown={true} />}
                 </TouchableOpacity>
                 </View>
               </View>
@@ -84,9 +134,10 @@ export default function RegistrationScreen() {
                   value={auth.login}
                   onChangeText={loginHandler}
                   placeholder="Login"
-                  style={styles.input}
+                  style={[styles.input,  {borderColor: isLoginFocused ? "#FF6C00" : "#E8E8E8" , backgroundColor:  isLoginFocused ?  "#fff" :"#F6F6F6"} ]}
                   textAlign={'left'}
-                  onFocus={()=>{setIsShowKeyboard(true)}}
+                  onFocus={()=>{setIsShowKeyboard(true), setIsLoginFocused(true)}}
+                  onBlur={() => setIsLoginFocused(false)}
                   returnKeyType="next"
                   onSubmitEditing={() => {
                     emailRef.current.focus();
@@ -98,9 +149,10 @@ export default function RegistrationScreen() {
                   onChangeText={emailHandler}
                   placeholder="Email"
                   keyboardType="email-address"
-                  style={styles.input}
+                  style={[styles.input,  {borderColor: isEmailFocused ? "#FF6C00" : "#E8E8E8" , backgroundColor:  isEmailFocused ?  "#fff" :"#F6F6F6"} ]}
                   textAlign={'left'}
-                  onFocus={()=>{setIsShowKeyboard(true)}}
+                  onFocus={()=>{setIsShowKeyboard(true), setIsEmailFocused(true)}}
+                  onBlur={() => setIsEmailFocused(false)}
                   ref={emailRef}
                   returnKeyType="next"
                   onSubmitEditing={() => {
@@ -109,14 +161,15 @@ export default function RegistrationScreen() {
                   blurOnSubmit={false}
 
                 />
-               <View style={styles.input}>
+               <View style={[styles.input,  {borderColor: isPasswordFocused ? "#FF6C00" : "#E8E8E8" , backgroundColor:  isPasswordFocused ?  "#fff" :"#F6F6F6"} ]}>
                 <TextInput
                    value={auth.password}
                    onChangeText={passwordHandler}
                    placeholder="Password"
                    secureTextEntry={isPasswordShown}
                    textAlign={'left'}
-                   onFocus={()=>{setIsShowKeyboard(true)}}
+                   onFocus={()=>{setIsShowKeyboard(true), setIsPasswordFocused(true)}}
+                   onBlur={() => setIsPasswordFocused(false)}
                    ref={passwordRef}
                    onSubmitEditing={() => {setIsShowKeyboard(false)}}
                  />
@@ -227,6 +280,8 @@ export default function RegistrationScreen() {
     },
     avatarImg: {
       borderRadius: 16,
+      minWidth: 120,
+      minHeight: 120,
     },
     addBtn: {
     position: "absolute",

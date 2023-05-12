@@ -4,13 +4,32 @@ import useRoute from "../router";
 import { useSelector, useDispatch } from "react-redux";
 import { authStateChangeUser } from "../redux/auth/authOperations";
 
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase/config";
+import { authSlice } from "../redux/auth/authReducer";
+
 const Main = () => {
     const {stateChange} = useSelector(state => state.auth);
-    const dispath = useDispatch();
+    const dispatch = useDispatch();
 
-     useEffect(()=>{
-        dispath(authStateChangeUser())
-     },[]);
+    //  useEffect(()=>{
+    //     dispath(authStateChangeUser())
+    //  },[]);
+
+     useEffect(() => {
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const userUpdateProfile = {
+              login: user.displayName,
+              userId: user.uid,
+              userAvatar: user.photoURL,
+              userEmail: user.email,
+            };
+            dispatch(authSlice.actions.updateUserProfile(userUpdateProfile));
+            dispatch(authSlice.actions.authStateChange({ stateChange: true }));
+          }
+        });
+      }, []);
 
     const routing = useRoute(stateChange);
 

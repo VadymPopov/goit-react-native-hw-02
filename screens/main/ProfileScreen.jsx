@@ -1,23 +1,58 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import CrossIcon from '../../assets/images/svg/CrossIcon';
-import { StyleSheet, View, Text, ImageBackground, Image,TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ImageBackground, Image,TouchableOpacity,FlatList  } from 'react-native';
 
 import { Feather } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 
-export default function ProfileScreen({navigation}){
+import {signOut} from "firebase/auth";
+import { auth } from "../../firebase/config";
+import { useNavigation } from '@react-navigation/native';
+import { db } from '../../firebase/config';
+
+import { authSignOutUser } from '../../redux/auth/authOperations';
+import { useDispatch, useSelector } from 'react-redux';
+
+// Create a reference to the posts collection
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+
+export default function ProfileScreen(){
     const [isAvatarShown, setIsAvatarShown] = useState(true);
+    const [userPosts, setUserPosts]=useState([]);
+    const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const {userId} = useSelector(state=>state.auth);
+
+    
+    const getUserPosts = async()=>{
+        const dbRef = await collection(db, "posts");
+        const q = query(dbRef, where("userId", "==", userId));
+        onSnapshot(q, (data) =>
+    setUserPosts(data.docs.map((doc) => ({ ...doc.data()})))
+    )
+};
+
+    useEffect( ()=>{
+        (async () => {
+            await getUserPosts();
+          })();
+    },[]);
   
     const avatarToggle = () => {
       setIsAvatarShown((value) => !value);
     };
 
+    const onHandleLogOut = () =>{
+        navigation.navigate('Login');
+        signOut(auth)
+    }
+
     return (
            <ImageBackground style={styles.image} source={require('../../assets/images/mountains-bg.png')}>
                 <View style={styles.container}>
-                    <View >
+                    <View>
                         
                         <View style={styles.avatar}>
                             <View style={styles.avatarBg}>
@@ -31,11 +66,13 @@ export default function ProfileScreen({navigation}){
                         </View>
                         <Text style={styles.mainTitle}>Name</Text>
 
-                        <View>
-                            <View style={styles.backgroundContainer}></View>
-                            <Text style={styles.title}>Name</Text>
+                <View>
+                    <FlatList data={userPosts} keyExtractor={(item, indx)=>indx.toString()} renderItem={({item})=>(<View style={styles.photoContainer}>
+                    <Image style={styles.photo} source={{uri: item.photo}} />
+                    <View>
+                        <Text style={styles.title}>{item.comment}</Text>
                             <View style={styles.iconContainer}>
-                                <TouchableOpacity onPress={()=>navigation.navigate('Comments')} style={styles.iconContainer}>
+                                <TouchableOpacity onPress={()=>navigation.navigate('Comments', {postId: item.id})} style={styles.iconContainer}>
                                     <FontAwesome name="comment" size={24} color="#FF6C00" />
                                     <Text style={styles.numbers}>0</Text>
                                 </TouchableOpacity>
@@ -44,15 +81,17 @@ export default function ProfileScreen({navigation}){
                                     <Text style={styles.numbers}>0</Text>
                                 </View>
                                 <View style={styles.locationContainer}>
-                                    <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
-                                    <Text style={styles.location}>Ukraine</Text>
-                                </View>
-                            </View>
+                            <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen', {location:item.location})}}>
+                                <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
+                            </TouchableOpacity>
+                            <Text style={styles.location}>{item.locationTitle}</Text>
                         </View>
-                        
-                        
-                        <View style={styles.backgroundContainer}></View>
+                            </View>
                     </View>
+
+                    </View>)}/>
+                </View>
+                </View>
                 </View>
             </ImageBackground>
         );
@@ -154,5 +193,13 @@ export default function ProfileScreen({navigation}){
             lineHeight:19,
             textDecorationLine:'underline'
         },
-      });
+        photoContainer: {
+            marginBottom: 10,
+        },
+        photo:{
+            height:200,
+            borderRadius: 10,
+            marginHorizontal: 10,
     
+        },
+      });

@@ -4,24 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { Camera, CameraType } from "expo-camera";
 import * as Location from "expo-location";
 
+import { db, storage } from '../../firebase/config';
+import { ref, uploadBytes, getDownloadURL} from 'firebase/storage';
+import { collection, addDoc } from "firebase/firestore";
+import { useSelector } from 'react-redux';
+import * as ImagePicker from "expo-image-picker";
 
-const initialState = {
-    title:'',
-    location: '',
-  };
+import { FontAwesome } from '@expo/vector-icons';
+
 
 export default function CreatePostsScreen({ navigation }) {
     const [location, setLocation] = useState(null);
+    const [locationTitle, setLocationTitle] = useState("");
     const [hasPermission, setHasPermission] = useState(null);
-    const [description, setDescription] = useState(initialState);
-    const locationRef = useRef();
-    
-    const titleHandler = (value)=>setDescription((prevState)=>({...prevState, title: value}));
-    const locationHandler = (value)=>setDescription((prevState)=>({...prevState, location: value}));
+    const [title, setTitle] = useState("");
 
     const [type, setType] = useState(CameraType.back);
     const [camera, setCamera] = useState(null);
     const [photo, setPhoto] = useState(null);
+
+    const {userId, login} = useSelector((state)=>state.auth);
+
+    const locationRef = useRef();
+    
 
     useEffect(() => {
         (async () => {
@@ -56,10 +61,54 @@ export default function CreatePostsScreen({ navigation }) {
     };
 
     const sendPhoto = ()=>{
-        setDescription(initialState);
+        writeDataToFirestore()
+        setLocationTitle("");
+        setTitle("");
         setPhoto(null);
-        navigation.navigate('Posts', {photo, description, location});
+        navigation.navigate('Posts');
     };
+
+    const uploadPhotoToServer = async ()=>{
+        const response = await fetch(photo);
+        const file = await response.blob();
+
+        const uniquePostId = Date.now().toString();
+        const storageRef = await ref(storage, `postImage/${uniquePostId}`);
+
+        const uploadPhoto = await uploadBytes(storageRef, file);
+        const takePhoto = await getDownloadURL(uploadPhoto.ref);
+
+        return takePhoto;
+    };
+
+    const writeDataToFirestore = async () => {
+        try {
+            const photo = await uploadPhotoToServer()
+          const docRef = await addDoc(collection(db, 'posts'), {
+           photo,
+           location,
+           locationTitle,
+           title,
+           userId,
+           login
+          });
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
+  };
+
+  const photoSelect = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
 
       if (hasPermission === null) {
         return <View />;
@@ -76,17 +125,18 @@ export default function CreatePostsScreen({ navigation }) {
         width: "100%"}} />}
                 {!photo && <View style={styles.snap}>
                     <TouchableOpacity  onPress={takePhoto}>
-                        <Ionicons name="camera" size={24} color="#BDBDBD" />
+                        <Ionicons name="camera" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>}
             </Camera>
-            <TouchableOpacity style={styles.addPhotoBtn} onPress={()=>{}}>
+
+            <TouchableOpacity style={styles.addPhotoBtn} onPress={()=>photoSelect()}>
                 <Text style={styles.text}>{photo ? "Edit photo" : "Upload"}</Text>
             </TouchableOpacity>
             <View>
             <TextInput 
-                value={description.title}
-                onChangeText={titleHandler}
+                value={title}
+                onChangeText={setTitle}
                 placeholder="Title..."
                 style={styles.input}
                 textAlign={'left'}
@@ -99,8 +149,8 @@ export default function CreatePostsScreen({ navigation }) {
             <View style={styles.locationContainer}>
                 <Ionicons style={styles.location} name="ios-location-outline" size={24} color="#BDBDBD" />
                 <TextInput
-                value={description.location}
-                onChangeText={locationHandler}
+                value={locationTitle}
+                onChangeText={setLocationTitle}
                 placeholder="Location..."
                 textAlign={'left'}
                 ref={locationRef}
@@ -110,7 +160,11 @@ export default function CreatePostsScreen({ navigation }) {
             <TouchableOpacity disabled={!photo ? true : false} style={photo ? styles.postBtn : styles.postBtnDisabled } onPress={sendPhoto}>
                 <Text style={photo ? styles.postBtnLabel : styles.postBtnLabelDisabled}>Post</Text>
             </TouchableOpacity>
+
             </View>
+            <TouchableOpacity onPress={() => setPhoto("")} style={styles.deleteBtn}>
+                    <FontAwesome name="trash-o" size={24} color="#DADADA"/>
+            </TouchableOpacity>
         </View>
         </TouchableWithoutFeedback>
     )
@@ -127,20 +181,20 @@ const styles = StyleSheet.create({
     camera:{
         height: 240,
         backgroundColor:'rgba(232, 232, 232, 1)',
-        borderRadius:8,
         borderColor:"#E8E8E8",
         borderWidth: 1,
         display:'flex',
         alignItems:'center',
         justifyContent:'center',
         marginBottom: 8,
-
+        overflow: 'hidden',
+        borderRadius:8
     },
     snap:{
         position: 'absolute',
         width:60,
         height:60,
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundColor:"rgba(255, 255, 255, 0.3)",
         alignItems:'center',
         justifyContent:'center',
         borderRadius: 30
@@ -149,6 +203,7 @@ const styles = StyleSheet.create({
         fontSize:16,
         lineHeight:19,
         color:'#BDBDBD',
+        
     },
     addPhotoBtn:{
         marginBottom:32,
@@ -167,6 +222,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 118,
         paddingVertical: 16,
         borderRadius: 100,
+        marginTop: 16,
     },
     postBtnLabel: {
         color: "#fff"
@@ -177,6 +233,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 118,
         paddingVertical: 16,
         borderRadius: 100,
+        marginTop: 16,
     },
     postBtnLabelDisabled: {
         color: "#BDBDBD"
@@ -194,5 +251,15 @@ const styles = StyleSheet.create({
     },
     location:{
       position: 'absolute',
+    },
+    deleteBtn: {
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#F6F6F6",
+        borderRadius: 20,
+        width: 70,
+        height: 40,
+        alignSelf: "center",
+        marginTop: 120,
     }
 });

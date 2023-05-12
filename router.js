@@ -2,7 +2,8 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import { TouchableOpacity, View, Text } from "react-native";
+import { TouchableOpacity } from "react-native";
+import { useDispatch } from "react-redux";
 
 // icons import
 import { AntDesign } from "@expo/vector-icons";
@@ -17,15 +18,23 @@ import ProfileScreen from "./screens/main/ProfileScreen";
 import PostsScreen from "./screens/main/PostsScreen";
 import CreatePostsScreen from "./screens/main/CreatePostsScreen";
 
+import { authSignOutUser } from "./redux/auth/authOperations";
+
 const AuthStack = createNativeStackNavigator();
 const MainTab = createBottomTabNavigator();
 
 export default function useRoute(isAuth) {
+
+  const dispatch = useDispatch();
+  const signOut = () => {
+    dispatch(authSignOutUser());
+  };
+
   if (!isAuth) {
     return (
       <AuthStack.Navigator
         initialRouteName='Login'
-        options={{ headerShown: false }}>
+         screenOptions={{headerShown: false}}>
         <AuthStack.Screen name='Registration' component={RegistrationScreen} />
         <AuthStack.Screen name='Login' component={LoginScreen} />
       </AuthStack.Navigator>
@@ -59,7 +68,7 @@ export default function useRoute(isAuth) {
             <TouchableOpacity
               activeOpacity={0.8}
               style={{ marginRight: 16 }}
-              onPress={() => navigation.navigate("Login")}>
+              onPress={signOut}>
               <Feather name='log-out' size={24} color='#BDBDBD' />
             </TouchableOpacity>
           ),

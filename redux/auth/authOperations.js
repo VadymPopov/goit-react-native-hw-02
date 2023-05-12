@@ -7,32 +7,29 @@ import {
 } from "firebase/auth";
 import { auth } from "../../firebase/config";
 
-import {authSlice, authSignOut} from './authReducer';
-
+import {authSlice} from './authReducer';
 
 export const authSignInUser =
   ({ email, password }) =>
   async (dispatch, getState) => {
     try {
         const credentials = await signInWithEmailAndPassword(auth, email, password);
-        // return credentials.user;
-        console.log(credentials.user);
+        return credentials.user;
       } catch (error) {
         console.log(error.message);
       }
   };
 
 export const authSignUpUser =
-  ({ login, email, password }) =>
+  ({ login, email, password, avatar }) =>
   async (dispatch, getState) => {
     try {
       const {user} = await createUserWithEmailAndPassword(auth, email, password);
-      // dispatch(authSlice.actions.updateUserProfile({userId: user.uid}))
-
       const userCurrent = auth.currentUser;
 
-     updateProfile(userCurrent, {
-        displayName: login
+      const updateUser = await updateProfile(userCurrent, {
+        displayName: login,
+        photoURL: avatar,
       });
 
       const updateUserSuccess =  auth.currentUser;
@@ -40,7 +37,9 @@ export const authSignUpUser =
       dispatch(
         authSlice.actions.updateUserProfile({
           userId: updateUserSuccess.uid,
-          login: updateUserSuccess.displayName
+          login: updateUserSuccess.displayName,
+          userAvatar: updateUserSuccess.photoURL,
+          userEmail:  updateUserSuccess.email,
         })
       )
     } catch (error) {
@@ -48,9 +47,13 @@ export const authSignUpUser =
     }
   };
 
-export const authSignOutUser = () => async (dispatch, getState) => {
-  await signOut(auth);
-  dispatch(authSignOut())
+export const authSignOutUser = () => async (dispatch) => {
+  try {
+    await signOut(auth);
+    dispatch(authSlice.actions.authSignOut())
+  } catch (error) {
+    console.log("error", error.message);
+  }
 };
 
 export const authStateChangeUser = () => async (dispatch, getState) => {
