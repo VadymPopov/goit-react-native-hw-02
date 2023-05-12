@@ -15,6 +15,9 @@ import {
   ImageBackground,
   Image } from 'react-native';
 
+import { useDispatch } from 'react-redux';
+import {authSignUpUser } from '../../redux/auth/authOperations';
+
   const initialState = {
     login: '',
     email:'',
@@ -23,6 +26,8 @@ import {
 
 export default function RegistrationScreen() {
   const navigation = useNavigation();
+
+  const dispatch = useDispatch();
 
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isAvatarShown, setIsAvatarShown] = useState(false);
@@ -51,7 +56,9 @@ export default function RegistrationScreen() {
   
   const onHandleSubmit = ()=>{
     console.log(auth)
+    dispatch(authSignUpUser(auth));
     setAuth(initialState)
+
   };
 
     return (

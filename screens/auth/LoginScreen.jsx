@@ -13,6 +13,9 @@ import {
   ImageBackground,
 } from 'react-native';
 
+import { useDispatch } from 'react-redux';
+import { authSignInUser } from '../../redux/auth/authOperations';
+
   const initialState = {
     email:'',
     password: '',
@@ -21,6 +24,8 @@ import {
 export default function LoginScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [isPasswordShown, setIsPasswordShown] = useState(true);
+
+  const dispatch = useDispatch();
 
   const emailRef = useRef();
 
@@ -40,6 +45,7 @@ export default function LoginScreen({ navigation }) {
   const onHandleSubmit = ()=>{
     console.log(auth)
     setAuth(initialState)
+    dispatch(authSignInUser(auth))
   };
 
     return (
