@@ -11,16 +11,13 @@ import {
     onSnapshot,
 } from "firebase/firestore";
 
-
 import { AntDesign } from '@expo/vector-icons';
 
 export default function CommentsScreen({route}){
     const {postId, photo} = route.params;
     const [comment, setComment] = useState('');
     const [allComments, setAllComments] = useState([]);
-    const {login,userAvatar, userId} = useSelector((state)=> state.auth);
-
-    console.log(userAvatar)
+    const {login, userAvatar, userId} = useSelector((state)=> state.auth);
 
     useEffect(() => {
         (async () => {
@@ -35,7 +32,7 @@ export default function CommentsScreen({route}){
 
         const dbRef = await doc(db,'posts', postId);
         await updateDoc(dbRef, {
-            comments: allComments.length + 1,
+          comments: allComments.length + 1,
         });
 
         await addDoc(collection(dbRef, "comments"), {

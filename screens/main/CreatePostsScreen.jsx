@@ -260,6 +260,6 @@ const styles = StyleSheet.create({
         width: 70,
         height: 40,
         alignSelf: "center",
-        marginTop: 120,
+        marginTop: 200,
     }
 });

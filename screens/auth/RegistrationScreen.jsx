@@ -37,26 +37,20 @@ export default function RegistrationScreen() {
   const [isPasswordShown, setIsPasswordShown] = useState(true);
   const [avatar, setAvatar] = useState(null);
   const [auth, setAuth] = useState(initialState);
-   const [isLoginFocused, setIsLoginFocused] = useState(false);
+  const [isLoginFocused, setIsLoginFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const emailRef = useRef();
   const passwordRef = useRef();
 
-  const avatarToggle = () => {
-    setIsAvatarShown((value) => !value);
-  };
-
   const passwordToggle = () => {
     setIsPasswordShown((value) => !value);
   };
 
-
   const loginHandler = (value)=>setAuth((prevState)=>({...prevState, login: value}));
   const passwordHandler = (value)=>setAuth((prevState)=>({...prevState, password: value}));
   const emailHandler = (value)=>setAuth((prevState)=>({...prevState, email: value}));
-
 
   const avatarSelect = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -108,7 +102,6 @@ export default function RegistrationScreen() {
     } catch (error) {
       console.log(error);
     }
-
   };
 
     return (
@@ -204,11 +197,9 @@ export default function RegistrationScreen() {
       borderTopRightRadius: 25,
       paddingHorizontal: 16,
       paddingTop: 92,
-      // paddingBottom: 78,
    },
     title: {
       fontSize: 30,
-      // fontWeight: 500,
       fontWeight: 'Medium',
       lineHeight: 35,
       textAlign: "center",

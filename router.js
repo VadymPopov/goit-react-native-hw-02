@@ -1,35 +1,23 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-
+import { createStackNavigator } from '@react-navigation/stack';
 import { TouchableOpacity } from "react-native";
-import { useDispatch } from "react-redux";
 
 // icons import
 import { AntDesign } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
 
+// screen import
 import RegistrationScreen from "./screens/auth/RegistrationScreen";
 import LoginScreen from "./screens/auth/LoginScreen";
+import MapScreen from "./screens/main/MapScreen";
+import CommentsScreen from "./screens/main/CommentsScreen";
 import Home from "./screens/main/Home";
 
-import ProfileScreen from "./screens/main/ProfileScreen";
-import PostsScreen from "./screens/main/PostsScreen";
-import CreatePostsScreen from "./screens/main/CreatePostsScreen";
-
-import { authSignOutUser } from "./redux/auth/authOperations";
 
 const AuthStack = createNativeStackNavigator();
-const MainTab = createBottomTabNavigator();
+const MainStack = createStackNavigator();
 
 export default function useRoute(isAuth) {
-
-  const dispatch = useDispatch();
-  const signOut = () => {
-    dispatch(authSignOutUser());
-  };
-
   if (!isAuth) {
     return (
       <AuthStack.Navigator
@@ -41,98 +29,34 @@ export default function useRoute(isAuth) {
     );
   }
 
-  return (
-    <MainTab.Navigator
-      initialRouteName='Home'
-      screenOptions={{
-        showLabel: false,
-        tabBarActiveBackgroundColor: "#FF6C00",
-        tabBarStyle: {
-          height: 83,
-          paddingTop: 9,
-          paddingBottom: 11,
-          paddingLeft: 93,
-          paddingRight: 93,
-        },
-        tabBarItemStyle: { borderRadius: 20, width: 70, height: 40 },
-      }}>
-      <MainTab.Screen
-        options={({ navigation }) => ({
-          title: "Posts",
-          headerTintColor: "#212121",
-          headerTitleStyle: {
-            fontWeight: "Medium",
-            fontSize: 17,
-          },
-          headerRight: () => (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={{ marginRight: 16 }}
-              onPress={signOut}>
-              <Feather name='log-out' size={24} color='#BDBDBD' />
-            </TouchableOpacity>
-          ),
-          tabBarShowLabel: false,
-          tabBarIcon: ({ focused }) => (
-            <Ionicons
-              name='grid-outline'
-              size={24}
-              color={focused ? "#fff" : "rgba(33, 33, 33, 0.8)"}
-            />
-          ),
-        })}
-        name='Home'
-        component={Home}
-      />
-
-      <MainTab.Screen
-        options={({ navigation }) => ({
-          title: "Create Posts",
-          headerTintColor: "#212121",
-          headerTitleStyle: {
-            fontWeight: "Medium",
-            fontSize: 17,
-          },
-          headerLeft: () => (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={{ marginLeft: 16 }}
-              onPress={() => navigation.navigate("Posts")}>
-              <AntDesign
-                name='arrowleft'
-                size={24}
-                color='rgba(33, 33, 33, 0.8)'
-              />
-            </TouchableOpacity>
-          ),
-          tabBarShowLabel: false,
-          tabBarIcon: ({ focused }) => (
-            <AntDesign
-              name='plus'
-              size={13}
-              color={focused ? "#fff" : "rgba(33, 33, 33, 0.8)"}
-            />
-          ),
-        })}
-        name='CreatePosts'
-        component={CreatePostsScreen}
-      />
-
-      <MainTab.Screen
-        options={{
-          tabBarShowLabel: false,
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <Feather
-              name='user'
-              size={24}
-              color={focused ? "#fff" : "rgba(33, 33, 33, 0.8)"}
-            />
-          ),
-        }}
-        name='Profile'
-        component={ProfileScreen}
-      />
-    </MainTab.Navigator>
-  );
+    return(
+      <MainStack.Navigator initialRouteName="Home">
+        <MainStack.Screen options={{headerShown: false}} name='Home' component={Home}/>
+        <MainStack.Screen options={({ navigation }) => ({headerShown: true, headerLeft: () => (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{ marginLeft: 16 }}
+                onPress={() => navigation.navigate('Posts')}>
+                <AntDesign
+                  name='arrowleft'
+                  size={24}
+                  color='rgba(33, 33, 33, 0.8)'
+                />
+              </TouchableOpacity>
+            )})} name='MapScreen' component={MapScreen}/>
+           
+        <MainStack.Screen  tabBarStyle={ {display: 'none' }} options={({ navigation }) => ({headerShown: true, headerLeft: () => (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{ marginLeft: 16 }}
+                onPress={() => navigation.navigate('Posts')}>
+                <AntDesign
+                  name='arrowleft'
+                  size={24}
+                  color='rgba(33, 33, 33, 0.8)'
+                />
+              </TouchableOpacity>
+            )})} name='Comments' component={CommentsScreen}/>
+      </MainStack.Navigator>
+    )
 }

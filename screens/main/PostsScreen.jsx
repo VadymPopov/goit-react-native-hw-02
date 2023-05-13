@@ -16,11 +16,6 @@ export default function PostsScreen({route}){
 
     const { login, userEmail, userAvatar } = useSelector((state) => state.auth);
 
-    // useEffect(()=>{
-    //     if(route.params){
-    //     setPosts((prevState)=>[...prevState, route.params])}
-    // }, [route.params]);
-
     const getDataFromFirestore = async () => {
         const dbRef = await collection(db, "posts");
         onSnapshot(dbRef, (data) =>
@@ -32,9 +27,7 @@ export default function PostsScreen({route}){
     (async () => {
         await getDataFromFirestore();
       })();
-},[]);
-
-console.log(posts)
+    },[]);
 
 
     return(
@@ -94,12 +87,12 @@ const styles = StyleSheet.create({
         marginLeft:8,
     },
     name:{
-        fontSize:13,
+        fontSize:24,
         fontWeight:'bold',
     },
     email:{
         color:'rgba(33, 33, 33, 0.8)',
-        fontSize:11,
+        fontSize:16,
         fontWeight:'regular',   
     },
     avatar:{
