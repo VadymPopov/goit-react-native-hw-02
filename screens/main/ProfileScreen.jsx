@@ -4,8 +4,6 @@ import { StyleSheet, View, Text, ImageBackground, Image,TouchableOpacity,FlatLis
 
 import { Feather, AntDesign, Ionicons, FontAwesome } from '@expo/vector-icons';
 
-import {signOut} from "firebase/auth";
-import { auth } from "../../firebase/config";
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../../firebase/config';
 
@@ -17,9 +15,9 @@ import * as ImagePicker from "expo-image-picker";
 import { collection, query, where, onSnapshot, updateDoc,increment, doc,addDoc } from "firebase/firestore";
 
 export default function ProfileScreen(){
-    const [isAvatarShown, setIsAvatarShown] = useState(true);
     const [userPosts, setUserPosts] = useState([]);
     const [avatar, setAvatar] = useState(null);
+    const navigation= useNavigation();
     
     const dispatch = useDispatch();
 
@@ -64,10 +62,6 @@ export default function ProfileScreen(){
           })();
     },[]);
   
-    const avatarToggle = () => {
-      setIsAvatarShown((value) => !value);
-    };
-
     const signOut = () => {
         dispatch(authSignOutUser());
       };
@@ -76,17 +70,6 @@ export default function ProfileScreen(){
            <ImageBackground style={styles.image} source={require('../../assets/images/mountains-bg.png')}>
                 <View style={styles.container}>
                 <View>
-                        
-                        {/* <View style={styles.avatar}>
-                            <View style={styles.avatarBg}>
-                                {isAvatarShown && (
-                                <Image style={styles.avatarImg} source={{uri: userAvatar}}/>)}
-                                <TouchableOpacity style={styles.addBtn} onPress={()=>avatarToggle()}>
-                                <CrossIcon  isShown={isAvatarShown} />
-                                </TouchableOpacity>
-                            </View>
-                            <TouchableOpacity activeOpacity={0.8} style={styles.logout} onPress={signOut}><Feather name="log-out" size={24} color="#BDBDBD" /></TouchableOpacity>
-                        </View> */}
                         <View style={styles.avatar}>
                 <View style={styles.avatarBg}>
                 {userAvatar && (
@@ -95,38 +78,43 @@ export default function ProfileScreen(){
                   {!userAvatar ? <CrossIcon  isShown={false} /> : <CrossIcon  isShown={true} />}
                 </TouchableOpacity>
                 </View>
+                <TouchableOpacity activeOpacity={0.8} style={styles.logout} onPress={signOut}><Feather name="log-out" size={24} color="#BDBDBD" /></TouchableOpacity>
               </View>
-                        <Text style={styles.mainTitle}>{login}</Text>
+                    <Text style={styles.mainTitle}>{login}</Text>
 
-                <View>
+                <View style={styles.userPosts}>
                     <FlatList data={userPosts} keyExtractor={(item, indx)=>indx.toString()} renderItem={({item})=>(<View style={styles.photoContainer}>
                     <Image style={styles.photo} source={{uri: item.photo}} />
-                    <View>
+
                         <Text style={styles.title}>{item.title}</Text>
-                            <View style={styles.iconContainer}>
-                                <TouchableOpacity onPress={()=>navigation.navigate('Comments', {postId: item.id, photo: item.photo})} style={styles.iconContainer}>
-                                    <FontAwesome name="comment" size={24} color={item.comments ? "#FF6C00"  : "#BDBDBD" } />
-                                    <Text style={styles.numbers}>{item.comments ? item.comments : 0}</Text>
-                                </TouchableOpacity>
+
+                        <View style={styles.iconsWrapper}>
+                            <View style={styles.iconsLeft}>
                                 <View style={styles.iconContainer}>
-                                <TouchableOpacity style={styles.iconContainer} onPress={()=>onLikeBtn(item)}>
-                                    <AntDesign name="like2" size={24} color="#FF6C00" />
-                                    <Text style={styles.numbers}>{item.likes}</Text>
+                                    <TouchableOpacity onPress={()=>navigation.navigate('Comments', {postId: item.id, photo: item.photo})} style={styles.iconContainer}>
+                                        <FontAwesome name="comment" size={24} color={item.comments ? "#FF6C00"  : "#BDBDBD" } />
+                                        <Text style={styles.numbers}>{item.comments ? item.comments : 0}</Text>
                                     </TouchableOpacity>
                                 </View>
-                                <View style={styles.locationContainer}>
-                            <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen', {location:item.location})}}>
-                                <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
-                            </TouchableOpacity>
-                            <Text style={styles.location}>{item.locationTitle}</Text>
-                        </View>
+                                <View style={styles.iconContainer}>
+                                    <TouchableOpacity style={styles.iconContainer} onPress={()=>onLikeBtn(item)}>
+                                        <AntDesign name="like2" size={24} color="#FF6C00" />
+                                        <Text style={styles.numbers}>{item.likes}</Text>
+                                        </TouchableOpacity>
+                                </View>
                             </View>
-                    </View>
+                            <View style={styles.locationContainer}>
+                                <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen', {location:item.location})}}>
+                                    <Ionicons  name="ios-location-outline" size={24} color="#BDBDBD" />
+                                </TouchableOpacity>
+                                <Text style={styles.location}>{item.locationTitle}</Text>
+                            </View>
+                        </View>
 
                     </View>)}/>
                 </View>
-                </View>
-                </View>
+            </View>
+            </View>
             </ImageBackground>
         );
       }
@@ -137,17 +125,6 @@ export default function ProfileScreen(){
           resizeMode: "cover",
           justifyContent: "flex-end",
         },
-        // backgroundContainer:{
-        //     // height: 240,
-        //     backgroundColor:'rgba(232, 232, 232, 1)',
-        //     borderRadius:8,
-        //     borderColor:"#E8E8E8",
-        //     borderWidth: 1,
-        //     display:'flex',
-        //     alignItems:'center',
-        //     justifyContent:'center',
-        //     marginTop:32
-        // },
         container: {
           marginTop:150,
           backgroundColor: "#fff",
@@ -200,7 +177,6 @@ export default function ProfileScreen(){
             fontWeight:'500',
             alignSelf:'center',
         },
-
         iconContainer:{
             display:'flex',
             flexDirection:'row',
@@ -223,7 +199,6 @@ export default function ProfileScreen(){
             display:'flex',
             flexDirection:'row',
             alignItems:'center',
-            marginLeft:141,
         },
         location:{
             fontSize:16,
@@ -231,12 +206,25 @@ export default function ProfileScreen(){
             textDecorationLine:'underline'
         },
         photoContainer: {
-            marginBottom: 10,
+            marginBottom: 32,
         },
         photo:{
-            height:200,
+            height:240,
             borderRadius: 10,
-            marginHorizontal: 10,
-    
+            
         },
+        userPosts: {
+            marginTop: 32,
+            marginBottom: 83,
+        },
+        iconsLeft:{
+            display:'flex',
+            flexDirection:'row',
+            alignItems:'center',
+        },
+        iconsWrapper: {
+            display:'flex',
+            flexDirection:'row',
+            justifyContent: 'space-between',
+        }, 
       });
