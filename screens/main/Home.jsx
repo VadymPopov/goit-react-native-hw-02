@@ -10,7 +10,6 @@ import ProfileScreen from './ProfileScreen';
 import CreatePostsScreen from './CreatePostsScreen';
 import PostsScreen from './PostsScreen';
 
-
 const MainTab = createBottomTabNavigator();
 import { useDispatch } from "react-redux";
 import { authSignOutUser } from "../../redux/auth/authOperations";

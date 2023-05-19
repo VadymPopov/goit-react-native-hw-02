@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, View, Text} from 'react-native';
+import React from 'react';
+import { StyleSheet, View} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 
 export default function MapScreen({ route }) {

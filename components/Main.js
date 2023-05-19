@@ -2,7 +2,6 @@ import React,{useEffect} from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import useRoute from "../router";
 import { useSelector, useDispatch } from "react-redux";
-import { authStateChangeUser } from "../redux/auth/authOperations";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config";
@@ -11,10 +10,6 @@ import { authSlice } from "../redux/auth/authReducer";
 const Main = () => {
     const {stateChange} = useSelector(state => state.auth);
     const dispatch = useDispatch();
-
-    //  useEffect(()=>{
-    //     dispath(authStateChangeUser())
-    //  },[]);
 
      useEffect(() => {
         onAuthStateChanged(auth, async (user) => {

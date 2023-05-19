@@ -1,8 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import { StyleSheet, View, Text, TextInput,TouchableOpacity, SafeAreaView, FlatList, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput,TouchableOpacity, SafeAreaView, FlatList, Image, Keyboard } from 'react-native';
 import { useSelector } from 'react-redux';
 import { db } from '../../firebase/config';
 import { format } from "date-fns";
+import uuid from 'react-native-uuid';
+
 import {
     collection,
     updateDoc,
@@ -17,6 +19,7 @@ export default function CommentsScreen({route}){
     const {postId, photo} = route.params;
     const [comment, setComment] = useState('');
     const [allComments, setAllComments] = useState([]);
+    const [isShownKeyboard, setIsShownKeyboard] = useState(false);
     const {login, userAvatar, userId} = useSelector((state)=> state.auth);
 
     useEffect(() => {
@@ -25,7 +28,10 @@ export default function CommentsScreen({route}){
         })();
       }, []);
 
-    const createPost = async ()=>{
+    const createComment = async ()=>{
+      if(!comment) {
+        return
+      }
         const date = new Date();
 
         const formatData = format(new Date(date), "dd MMM, yyyy | HH:mm");
@@ -44,25 +50,27 @@ export default function CommentsScreen({route}){
         });
 
         setComment("");
+        setIsShownKeyboard(false);
+        Keyboard.dismiss()
     };
 
     const getAllComments = async ()=>{
         try {
             const dbRef = doc(db, "posts", postId);
             onSnapshot(collection(dbRef, "comments"), (data) =>
-              setAllComments(data.docs.map((doc) => ({ ...doc.data(),id: doc.id})))
+              setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id})))
             );
           } catch (error) {
             console.log(`getAllComments`, error);
           }
     };
 
-    const markupComment = (item) => {
+    const commentMarkup = (item) => {
         if (item.userId === userId) {
           return (
             <View
               style={{
-                ...styles.containerImgComent,
+                ...styles.imgAvatarContainer,
                 marginLeft: Platform.OS === "ios" ? 0 : 90,
               }}
             >
@@ -79,7 +87,7 @@ export default function CommentsScreen({route}){
                 <Text style={styles.commentData}>{item.formatData}</Text>
               </View>
               <Image
-                style={{ ...styles.userAvatarImg, marginRight: 0, marginLeft: 5 }}
+                style={{ ...styles.userAvatarImg, marginRight: 0, marginLeft: 16 }}
                 source={{
                   uri: item.userAvatar,
                 }}
@@ -88,7 +96,7 @@ export default function CommentsScreen({route}){
           );
         } else {
           return (
-            <View style={styles.containerImgComent}>
+            <View style={styles.imgAvatarContainer}>
               <Image
                 style={styles.userAvatarImg}
                 source={{
@@ -114,20 +122,23 @@ export default function CommentsScreen({route}){
 
         <FlatList
           data={allComments}
-          renderItem={({ item }) => markupComment(item)}
-          keyExtractor={(_, i) => i.toString()}
+          renderItem={({ item }) => commentMarkup(item)}
+          keyExtractor={() => uuid.v4()}
         />
-        <View style={styles.inputContainer}>
+        <View style={{...styles.inputContainer, marginBottom: isShownKeyboard ? 350 : 0}}>
           <TextInput
             value={comment}
             onChangeText={setComment}
             placeholder="Add comment..."
             style={styles.textInput}
+            onFocus={()=>setIsShownKeyboard(true)}
+            onBlur={() => setIsShownKeyboard(false)}
+
           />
           <TouchableOpacity
-            onPress={createPost}
-            activeOpacity={0.6}
-            style={styles.btnSend}
+            onPress={createComment}
+            activeOpacity={0.8}
+            style={styles.commentCreateBtn}
           >
             <AntDesign name="arrowup" size={18} color="#fff" />
           </TouchableOpacity>
@@ -144,20 +155,16 @@ const styles = StyleSheet.create({
       backgroundColor: "#fff",
       paddingHorizontal: 16,
     },
-  
     imgContainer: {
       marginBottom: 32,
       marginTop: 32,
-  
       alignItems: "center",
     },
-  
     img: {
       width: 370,
       height: 240,
       borderRadius: 8,
     },
-  
     commentContainer: {
       paddingTop: 16,
       paddingLeft: 16,
@@ -170,19 +177,15 @@ const styles = StyleSheet.create({
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
-  
     commentText: {
       fontSize: 13,
       lineHeight: 18,
       color: "#212121",
     },
-  
     inputContainer: {
       justifyContent: "flex-end",
       paddingHorizontal: 10,
-      // marginBottom: 16,
     },
-  
     textInput: {
       fontSize: 16,
       lineHeight: 19,
@@ -193,8 +196,7 @@ const styles = StyleSheet.create({
       borderRadius: 100,
       backgroundColor: "#F6F6F6",
     },
-  
-    btnSend: {
+    commentCreateBtn: {
       position: "absolute",
       bottom: 8,
       right: 24,
@@ -205,17 +207,19 @@ const styles = StyleSheet.create({
       backgroundColor: "#FF6C00",
       borderRadius: 50,
     },
-  
     commentData: {
       color: "#BDBDBD",
       fontSize: 10,
       lineHeight: 12,
       textAlign: "right",
     },
-  
-    containerImgComent: {
+    imgAvatarContainer: {
       flex: 1,
       flexDirection: "row",
     },
-    userAvatarImg: { width: 28, height: 28, borderRadius: 100, marginRight: 5 },
+    userAvatarImg: { 
+      width: 28, 
+      height: 28, 
+      borderRadius: 100, 
+      marginRight: 16 },
   });

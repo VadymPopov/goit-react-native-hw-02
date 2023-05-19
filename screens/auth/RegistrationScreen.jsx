@@ -208,9 +208,6 @@ export default function RegistrationScreen() {
       marginBottom: 20,
 
     },
-    form: {
-      // marginBottom: 27,
-    },
     input: {
       height: 50,
       marginTop: 16,
@@ -229,7 +226,6 @@ export default function RegistrationScreen() {
     showTitle: {
       color: '#1B4371',
       fontSize: 16,
-      // fontWeight: 400,
       fontWeight: 'Regular',
       lineHeight: 19
     },
@@ -251,7 +247,6 @@ export default function RegistrationScreen() {
       lineHeight: 19,
       textAlign: "center",
       color: "#1B4371",
-      // marginBottom: 78,
     },
     avatar:{
       position: "absolute",

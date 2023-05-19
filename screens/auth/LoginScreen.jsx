@@ -22,7 +22,7 @@ import { authSignInUser } from '../../redux/auth/authOperations';
   };
 
 export default function LoginScreen({ navigation }) {
-  const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [isShownKeyboard, setIsShownKeyboard] = useState(false);
   const [isPasswordShown, setIsPasswordShown] = useState(true);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
@@ -40,12 +40,11 @@ export default function LoginScreen({ navigation }) {
   const emailHandler = (value)=>setAuth((prevState)=>({...prevState, email: value}));
 
   const keyboardHide = ()=>{
-    setIsShowKeyboard(false);
+    setIsShownKeyboard(false);
     Keyboard.dismiss();
   };
   
   const onHandleSubmit = ()=>{
-    // console.log(auth)
     setAuth(initialState)
     dispatch(authSignInUser(auth))
   };
@@ -57,7 +56,7 @@ export default function LoginScreen({ navigation }) {
           behavior={Platform.OS == "ios" ? "padding" : "height"}
           style={styles.container}
         >
-            <View style={{...styles.form, marginBottom: isShowKeyboard ? -94 : 144}}>
+            <View style={{...styles.form, marginBottom: isShownKeyboard ? -94 : 144}}>
               <Text style={styles.title}>Log In</Text>
               <TextInput
                   value={auth.email}
@@ -66,7 +65,7 @@ export default function LoginScreen({ navigation }) {
                   keyboardType="email-address"
                   style={[styles.input,  {borderColor: isEmailFocused ? "#FF6C00" : "#E8E8E8" , backgroundColor:  isEmailFocused ?  "#fff" :"#F6F6F6"} ]}
                   textAlign={'left'}
-                  onFocus={()=>{setIsShowKeyboard(true), setIsEmailFocused(true)}}
+                  onFocus={()=>{setIsShownKeyboard(true), setIsEmailFocused(true)}}
                   onBlur={() => setIsEmailFocused(false)}
                   returnKeyType="next"
                   onSubmitEditing={() => {
@@ -82,10 +81,10 @@ export default function LoginScreen({ navigation }) {
                   placeholder="Password"
                   secureTextEntry={isPasswordShown}
                   textAlign={'left'}
-                  onFocus={()=>{setIsShowKeyboard(true), setIsPasswordFocused(true)}}
+                  onFocus={()=>{setIsShownKeyboard(true), setIsPasswordFocused(true)}}
                   onBlur={() => setIsPasswordFocused(false)}
                   ref={emailRef}
-                  onSubmitEditing={() => {setIsShowKeyboard(false)}}
+                  onSubmitEditing={() => {setIsShownKeyboard(false)}}
                  />
                  <TouchableOpacity activeOpacity={0.5} style={styles.showBtn} onPress={passwordToggle}>
                     <Text style={styles.showTitle}>{isPasswordShown ? 'Show' : 'Hide'}</Text>
@@ -129,17 +128,12 @@ export default function LoginScreen({ navigation }) {
       marginBottom: 20,
 
     },
-    form: {
-      // marginBottom: 27,
-    },
     input: {
       height: 50,
       marginTop: 16,
       borderWidth: 1,
-      // borderColor: "#E8E8E8",
       borderRadius: 8,
       padding: 16,
-      // backgroundColor: "#F6F6F6",
       justifyContent:'center'
     },
     showBtn:{

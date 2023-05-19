@@ -9,11 +9,11 @@ import { db } from '../../firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore'; 
 
 import { useSelector } from "react-redux";
+import uuid from 'react-native-uuid';
 
-export default function PostsScreen({route}){
+export default function PostsScreen(){
     const [posts, setPosts]=useState([]);
     const navigation= useNavigation();
-
     const { login, userEmail, userAvatar } = useSelector((state) => state.auth);
 
     const getDataFromFirestore = async () => {
@@ -42,7 +42,7 @@ export default function PostsScreen({route}){
 
             <FlatList style={{paddingLeft:16,
                 paddingRight: 16,
-            }} data={posts} keyExtractor={(item, indx) => indx.toString()} renderItem={({ item }) => (
+            }} data={posts} keyExtractor={() => uuid.v4()} renderItem={({ item }) => (
                 <View>
                     <View style={styles.imgContainer}>
                         <Image style={styles.image} source={{uri: item.photo}} />
@@ -55,7 +55,6 @@ export default function PostsScreen({route}){
                           ? "#BDBDBD"
                           : "#FF6C00"
                       } />
-                            {/* <Text style={styles.numbers}>0</Text> */}
                         </TouchableOpacity>
                         <View style={styles.locationContainer}>
                             <TouchableOpacity  onPress={()=>{navigation.navigate('MapScreen', {location:item.location, title:item.title})}}>
